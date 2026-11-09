@@ -34,3 +34,9 @@ Open `index.html` in a modern browser or run `node test.mjs` with Node.js 20+. T
 ## Scope
 
 Synthetic lab inputs and deterministic rules. Review results before applying them to a real incident.
+
+## What this demonstrates
+
+**Correlate high-impact AWS and Azure administrative changes.** Compare successful logging and privilege changes with a denied action. Approved maintenance can trigger the same rule. Check actor, change ticket, and whether logging resumed.
+
+[Reference guidance](https://attack.mitre.org/datacomponents/DC0090/)

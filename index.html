@@ -17,7 +17,7 @@
       &quot;eventID&quot;: &quot;aws-5&quot;
     }
   ]
-}</textarea><div class="actions"><button id="run">Run lab</button><button class="secondary" id="reset">Reset fixture</button></div></div><div class="card"><h2>Evidence output</h2><pre id="output" aria-live="polite"></pre><div class="actions"><button class="secondary" id="save">Download JSON</button></div></div></section></main><script>
+}</textarea><div class="actions"><button id="run">Run lab</button><button class="secondary" id="reset">Reset fixture</button><button class="secondary" id="compare">Load comparison</button></div></div><div class="card"><h2>Evidence output</h2><pre id="output" aria-live="polite"></pre><div class="actions"><button class="secondary" id="save">Download JSON</button></div></div></section><section class="card" style="margin-top:18px"><p class="tag">What this demonstrates</p><h2>Correlate high-impact AWS and Azure administrative changes</h2><p>Compare successful logging and privilege changes with a denied action. Approved maintenance can trigger the same rule. Check actor, change ticket, and whether logging resumed.</p><a href="https://attack.mitre.org/datacomponents/DC0090/">Reference guidance</a></section></main><script>
 "use strict";
 function analyze(input) {
   const rules = {
@@ -51,6 +51,7 @@ function run() {
   document.getElementById("save").disabled = report === undefined;
 }
 document.getElementById("run").onclick = run;
+document.getElementById("compare").onclick = () => { input.value = "{\n  \"events\": [\n    {\n      \"eventName\": \"StopLogging\",\n      \"eventID\": \"aws-denied\",\n      \"errorCode\": \"AccessDenied\"\n    },\n    {\n      \"operationName\": {\n        \"value\": \"Microsoft.Authorization/roleAssignments/write\"\n      },\n      \"status\": {\n        \"value\": \"Failed\"\n      }\n    }\n  ]\n}"; run(); };
 document.getElementById("reset").onclick = () => { input.value = fixture; run(); };
 document.getElementById("save").onclick = () => {
   if (report === undefined) return;

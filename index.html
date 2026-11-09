@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cloud Attack Detector | Syed Hassan Ahmed</title><style>:root{color-scheme:dark;--bg:#0b1220;--panel:#131f32;--text:#eef4ff;--muted:#aebed3;--accent:#6de3c0}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#18394a,transparent 55%),var(--bg);font:16px/1.65 system-ui;color:var(--text)}main{max-width:1120px;margin:auto;padding:38px 24px 64px}a{color:var(--accent)}h1{font-size:clamp(2.4rem,7vw,4.5rem);line-height:1.06;letter-spacing:-.05em;margin:16px 0}h2,h3{line-height:1.2}p{color:var(--muted)}.tag{color:var(--accent);text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:700}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:18px;margin-top:24px}.card{border:1px solid #31435a;background:var(--panel);border-radius:16px;padding:22px}.card h2,.card h3{margin-top:8px}.actions{display:flex;gap:10px;flex-wrap:wrap}.button,button{background:var(--accent);color:#09231d;border:0;border-radius:8px;padding:8px 13px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none}.secondary{background:#26374e;color:var(--text)}textarea,pre{width:100%;min-height:17rem;border:1px solid #31435a;border-radius:10px;background:#0c1524;color:var(--text);padding:12px;font:14px/1.55 ui-monospace,monospace;overflow-wrap:anywhere;white-space:pre-wrap}textarea{resize:vertical}a:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid #fff;outline-offset:3px}@media print{body,.card{background:white;color:black}p,pre{background:white;color:black}nav,.actions,.input{display:none}}</style><body><main><nav><a href="https://shassanahmed.space/cyber-labs/">← Cybersecurity labs</a></nav><header><p class="tag">Lab 04 · Cloud • AWS and Azure</p><h1>Cloud Attack Detector</h1><p>Flag CloudTrail and Azure Activity operations that weaken logging or elevate access.</p><p>Synthetic lab inputs and deterministic rules. Review results before applying them to a real incident.</p><a href="https://github.com/shassanahmed93-rgb/cloud-attack-detector">View source on GitHub</a></header><section class="grid" aria-label="Interactive scenario"><div class="card input"><h2><label for="input">Scenario input</label></h2><textarea id="input" spellcheck="false">{
+  &quot;events&quot;: [
+    {
+      &quot;eventName&quot;: &quot;StopLogging&quot;,
+      &quot;eventID&quot;: &quot;aws-4&quot;
+    },
+    {
+      &quot;operationName&quot;: {
+        &quot;value&quot;: &quot;Microsoft.Authorization/roleAssignments/write&quot;
+      },
+      &quot;eventDataId&quot;: &quot;az-4&quot;
+    },
+    {
+      &quot;eventName&quot;: &quot;DescribeInstances&quot;,
+      &quot;eventID&quot;: &quot;aws-5&quot;
+    }
+  ]
+}</textarea><div class="actions"><button id="run">Run lab</button><button class="secondary" id="reset">Reset fixture</button></div></div><div class="card"><h2>Evidence output</h2><pre id="output" aria-live="polite"></pre><div class="actions"><button class="secondary" id="save">Download JSON</button></div></div></section></main><script>
+"use strict";
+function analyze(input) {
+  const rules = {
+    StopLogging: ["AWS", "Logging disabled"],
+    DeleteTrail: ["AWS", "Trail deleted"],
+    AttachUserPolicy: ["AWS", "User policy attached"],
+    "microsoft.authorization/roleassignments/write": ["Azure", "Role assignment changed"],
+    "microsoft.insights/diagnosticsettings/delete": ["Azure", "Diagnostic settings deleted"]
+  };
+  const findings = input.events.flatMap(event => {
+    if (event.errorCode || /failed/i.test(event.status?.value ?? "")) return [];
+    const operation = event.eventName ?? event.operationName?.value?.toLowerCase();
+    const rule = Object.hasOwn(rules, operation) ? rules[operation] : null;
+    return rule ? [{id: event.eventID ?? event.eventDataId, provider: rule[0], operation, reason: rule[1]}] : [];
+  });
+  return {scanned: input.events.length, count: findings.length, findings};
+}
+
+const input = document.getElementById("input");
+const result = document.getElementById("output");
+const fixture = input.value;
+let report;
+function run() {
+  report = undefined;
+  try {
+    report = analyze(JSON.parse(input.value));
+    result.textContent = JSON.stringify(report, null, 2);
+  } catch (error) {
+    result.textContent = "Input error: " + error.message;
+  }
+  document.getElementById("save").disabled = report === undefined;
+}
+document.getElementById("run").onclick = run;
+document.getElementById("reset").onclick = () => { input.value = fixture; run(); };
+document.getElementById("save").onclick = () => {
+  if (report === undefined) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], {type:"application/json"}));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "cloud-attack-detector-evidence.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+run();
+</script></body></html>

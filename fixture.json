@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "eventName": "StopLogging",
+      "eventID": "aws-4"
+    },
+    {
+      "operationName": {
+        "value": "Microsoft.Authorization/roleAssignments/write"
+      },
+      "eventDataId": "az-4"
+    },
+    {
+      "eventName": "DescribeInstances",
+      "eventID": "aws-5"
+    }
+  ]
+}
